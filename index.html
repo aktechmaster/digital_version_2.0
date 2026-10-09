@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - SMP DIGITAL V2.0</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <img src="https://via.placeholder.com/100?text=SMPIT" alt="Logo Sekolah" class="auth-logo">
+      <h1 class="auth-title">SMP DIGITAL</h1>
+      <p class="auth-subtitle">Portal Informasi Guru Islam Terpadu Al-Kautsar</p>
+
+      <div id="errorBox" class="toast-error" style="display: none;"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Username / NIP</label>
+          <input type="text" id="username" class="form-input" placeholder="Masukkan username" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-input" placeholder="Masukkan password" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" id="btnLogin" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+          Masuk ke Dashboard
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>
