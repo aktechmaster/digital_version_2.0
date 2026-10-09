@@ -1,8 +1,8 @@
 /**
  * js/dashboard.js - Dynamic Menu Renderer & Dashboard Logic
+ * (MODE TEMPORARY: Semua menu ditampilkan tanpa pembatasan peran)
  */
 
-// Katalog Semua Menu Aplikasi beserta Pengaturan Aksesnya
 const MENU_CATALOG = [
   {
     id: "jurnal_harian",
@@ -11,7 +11,16 @@ const MENU_CATALOG = [
     icon: "📅",
     accent: "blue",
     permission: "always",
-    link: "https://google.com" // Ganti dengan link Form/App Anda
+    link: "https://google.com"
+  },
+  {
+    id: "jurnal_t2q",
+    title: "Jurnal T2Q",
+    desc: "Tahsin & Tahfidz Al-Qur'an.",
+    icon: "📖",
+    accent: "purple",
+    permission: "is_t2q",
+    link: "https://google.com"
   },
   {
     id: "jadwal_mengajar",
@@ -21,6 +30,15 @@ const MENU_CATALOG = [
     accent: "blue",
     permission: "always",
     modal: "modalJadwal"
+  },
+  {
+    id: "absensi_siswa",
+    title: "Absensi Siswa",
+    desc: "Rekap kehadiran siswa harian.",
+    icon: "📝",
+    accent: "cyan",
+    permission: "is_wali_kelas",
+    link: "https://google.com"
   },
   {
     id: "laporan_kinerja",
@@ -70,7 +88,7 @@ const MENU_CATALOG = [
   {
     id: "jurnal_ekstra",
     title: "Jurnal Ekstra",
-    desc: "Khusus Pembina Ekstrakulikuler.",
+    desc: "Khusus Pembina Ekstrakurikuler.",
     icon: "⚽",
     accent: "blue",
     permission: "is_ekstra",
@@ -80,7 +98,7 @@ const MENU_CATALOG = [
     id: "absensi_karyawan",
     title: "Absensi Karyawan",
     desc: "Khusus Waka Kurikulum.",
-    icon: "📝",
+    icon: "📋",
     accent: "cyan",
     permission: "is_wakur",
     link: "https://google.com"
@@ -95,6 +113,24 @@ const MENU_CATALOG = [
     link: "https://google.com"
   },
   {
+    id: "laporan_piket",
+    title: "Laporan Piket",
+    desc: "Rekap data piket harian.",
+    icon: "📊",
+    accent: "green",
+    permission: "is_wakur",
+    link: "https://google.com"
+  },
+  {
+    id: "jurnal_perilaku",
+    title: "Jurnal Perilaku & Sikap",
+    desc: "Khusus Guru & Wali Kelas.",
+    icon: "📓",
+    accent: "purple",
+    permission: "is_wali_kelas",
+    link: "https://google.com"
+  },
+  {
     id: "nilai_karakter",
     title: "Input Nilai Karakter",
     desc: "Khusus Wali Kelas.",
@@ -106,20 +142,13 @@ const MENU_CATALOG = [
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Guard Sesi
   Auth.requireAuth();
   const session = Auth.getSession();
 
-  // 2. Render Tanggal Navbar
   renderCurrentDate();
-
-  // 3. Render Welcome Card
   renderWelcomeCard(session);
-
-  // 4. Render Menu Grid Sesuai Role Permission
   renderMenuGrid();
 
-  // 5. Logout Listener
   document.getElementById("btnLogout").addEventListener("click", () => {
     if (confirm("Apakah Anda yakin ingin keluar?")) {
       Auth.logout();
@@ -144,38 +173,28 @@ function renderMenuGrid() {
   menuGrid.innerHTML = "";
 
   MENU_CATALOG.forEach(item => {
-    // Check permission
-    let canAccess = false;
-    if (item.permission === "always") {
-      canAccess = true;
+    // SEMENTARA: Menampilkan SELURUH menu tanpa memfilter permission
+    const card = document.createElement("a");
+    card.className = "menu-card";
+    card.setAttribute("data-accent", item.accent);
+
+    if (item.link) {
+      card.href = item.link;
+      card.target = "_blank";
     } else {
-      canAccess = Auth.hasPermission(item.permission);
+      card.href = "#";
+      card.addEventListener("click", (e) => {
+        e.preventDefault();
+        alert(`Membuka modal: ${item.title}`);
+      });
     }
 
-    // Hanya buat elemen jika user berhak mengakses
-    if (canAccess) {
-      const card = document.createElement("a");
-      card.className = "menu-card";
-      card.setAttribute("data-accent", item.accent);
+    card.innerHTML = `
+      <div class="card-icon">${item.icon}</div>
+      <div class="card-title">${item.title}</div>
+      <div class="card-desc">${item.desc}</div>
+    `;
 
-      if (item.link) {
-        card.href = item.link;
-        card.target = "_blank";
-      } else {
-        card.href = "#";
-        card.addEventListener("click", (e) => {
-          e.preventDefault();
-          alert(`Membuka modal: ${item.title}`);
-        });
-      }
-
-      card.innerHTML = `
-        <div class="card-icon">${item.icon}</div>
-        <div class="card-title">${item.title}</div>
-        <div class="card-desc">${item.desc}</div>
-      `;
-
-      menuGrid.appendChild(card);
-    }
+    menuGrid.appendChild(card);
   });
 }
