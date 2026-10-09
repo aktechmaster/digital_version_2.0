@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Guru - SMP DIGITAL V2.0</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span>SMPIT Al-Kautsar</span>
+    </div>
+    <div class="navbar-date" id="currentDateDisplay">-- -- ----</div>
+    <button id="btnLogout" class="btn" style="background: rgba(255,255,255,0.2); color: white; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+      Logout
+    </button>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="dashboard-container">
+    <!-- Dynamic Welcome Card -->
+    <div class="welcome-card">
+      <div class="welcome-info">
+        <p style="font-size: 1.1rem; opacity: 0.9;">Selamat Datang,</p>
+        <h2 id="userFullName">Mengambil data...</h2>
+        <p class="nip" id="userNip">NIPY: -</p>
+        <p class="role-title" id="userRoleTitle">Guru</p>
+        <p class="school-tag">Dashboard Informasi Guru Islam Terpadu Al-Kautsar</p>
+      </div>
+      <img id="userAvatar" src="https://via.placeholder.com/100?text=Guru" alt="Foto Profil" class="profile-avatar">
+    </div>
+
+    <!-- Dynamic Role-Based Menu Grid -->
+    <div class="menu-grid" id="menuGrid">
+      <!-- Di-render secara otomatis oleh js/dashboard.js -->
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
