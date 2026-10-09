@@ -149,11 +149,14 @@ document.addEventListener("DOMContentLoaded", () => {
   renderWelcomeCard(session);
   renderMenuGrid();
 
-  document.getElementById("btnLogout").addEventListener("click", () => {
-    if (confirm("Apakah Anda yakin ingin keluar?")) {
-      Auth.logout();
-    }
-  });
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", () => {
+      if (confirm("Apakah Anda yakin ingin keluar?")) {
+        Auth.logout();
+      }
+    });
+  }
 });
 
 function renderCurrentDate() {
@@ -163,9 +166,13 @@ function renderCurrentDate() {
 }
 
 function renderWelcomeCard(session) {
-  document.getElementById("userFullName").innerText = session.username || "Guru";
-  document.getElementById("userNip").innerText = `NIPY: ${session.id_guru || '-'}`;
-  document.getElementById("userRoleTitle").innerText = session.role || "Guru Mata Pelajaran";
+  const namaLengkap = session.nama_lengkap || session.username || "Guru";
+  const nipy = session.nip_nik || "-";
+  const jabatan = session.jabatan || session.role || "Guru Mata Pelajaran";
+
+  document.getElementById("userFullName").innerText = namaLengkap;
+  document.getElementById("userNip").innerText = `NIPY: ${nipy}`;
+  document.getElementById("userRoleTitle").innerText = jabatan;
 }
 
 function renderMenuGrid() {
