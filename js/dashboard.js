@@ -1,6 +1,6 @@
 /**
  * js/dashboard.js - Dynamic Menu Renderer & Dashboard Logic
- * (MODE TEMPORARY: Semua menu ditampilkan tanpa pembatasan peran)
+ * (MODE TEMPORARY: Semua menu ditampilkan tanpa pembatasan peran untuk pengujian UI)
  */
 
 const MENU_CATALOG = [
@@ -148,15 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCurrentDate();
   renderWelcomeCard(session);
   renderMenuGrid();
-
-  const btnLogout = document.getElementById("btnLogout");
-  if (btnLogout) {
-    btnLogout.addEventListener("click", () => {
-      if (confirm("Apakah Anda yakin ingin keluar?")) {
-        Auth.logout();
-      }
-    });
-  }
+  setupDropdownMenu();
 });
 
 function renderCurrentDate() {
@@ -166,6 +158,7 @@ function renderCurrentDate() {
 }
 
 function renderWelcomeCard(session) {
+  // Ambil data detail hasil pencocokan dari tab Guru saat login
   const namaLengkap = session.nama_lengkap || session.username || "Guru";
   const nipy = session.nip_nik || "-";
   const jabatan = session.jabatan || session.role || "Guru Mata Pelajaran";
@@ -175,12 +168,50 @@ function renderWelcomeCard(session) {
   document.getElementById("userRoleTitle").innerText = jabatan;
 }
 
+function setupDropdownMenu() {
+  const btnHamburger = document.getElementById("btnHamburger");
+  const dropdownMenu = document.getElementById("dropdownMenu");
+
+  if (!btnHamburger || !dropdownMenu) return;
+
+  // Toggle Tampilan Dropdown
+  btnHamburger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle("show");
+  });
+
+  // Tutup Otomatis Jika Mengklik Area di Luar Dropdown
+  document.addEventListener("click", (e) => {
+    if (!dropdownMenu.contains(e.target) && e.target !== btnHamburger) {
+      dropdownMenu.classList.remove("show");
+    }
+  });
+
+  // Listener Aksi Komponen Menu Dropdown
+  document.getElementById("btnRefresh")?.addEventListener("click", () => location.reload());
+  
+  document.getElementById("btnAbout")?.addEventListener("click", () => {
+    alert("SMP DIGITAL V2.0\nPortal Informasi Guru Islam Terpadu Al-Kautsar");
+  });
+
+  document.getElementById("btnChangePass")?.addEventListener("click", () => {
+    alert("Fitur Ubah Password akan dibuka.");
+  });
+
+  document.getElementById("btnLogout")?.addEventListener("click", () => {
+    if (confirm("Apakah Anda yakin ingin keluar?")) {
+      Auth.logout();
+    }
+  });
+}
+
 function renderMenuGrid() {
   const menuGrid = document.getElementById("menuGrid");
+  if (!menuGrid) return;
   menuGrid.innerHTML = "";
 
   MENU_CATALOG.forEach(item => {
-    // SEMENTARA: Menampilkan SELURUH menu tanpa memfilter permission
+    // SEMENTARA: Menampilkan SELURUH 15 menu tanpa memfilter permission
     const card = document.createElement("a");
     card.className = "menu-card";
     card.setAttribute("data-accent", item.accent);
