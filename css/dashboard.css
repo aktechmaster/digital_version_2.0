@@ -1,0 +1,146 @@
+/**
+ * css/dashboard.css - Dashboard Layout & Interactive Card Grid
+ */
+
+/* Navbar */
+.navbar {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.navbar-date {
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+/* Main Layout */
+.dashboard-container {
+  max-width: 1100px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+/* Welcome Banner Card */
+.welcome-card {
+  background: var(--primary-gradient);
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-info h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.welcome-info .nip {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.welcome-info .role-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0.2rem;
+  margin-bottom: 1rem;
+}
+
+.welcome-info .school-tag {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.profile-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid white;
+  object-fit: cover;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Menu Grid */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 1.2rem;
+}
+
+.menu-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1rem;
+  text-decoration: none;
+  color: var(--text-dark);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-top: 3.5px solid transparent;
+  cursor: pointer;
+}
+
+.menu-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Color Accent Variations for Cards */
+.menu-card[data-accent="blue"] { border-top-color: var(--accent-blue); }
+.menu-card[data-accent="orange"] { border-top-color: var(--accent-orange); }
+.menu-card[data-accent="green"] { border-top-color: var(--primary); }
+.menu-card[data-accent="purple"] { border-top-color: var(--accent-purple); }
+.menu-card[data-accent="cyan"] { border-top-color: var(--accent-cyan); }
+
+.card-icon {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
+}
+
+.card-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .welcome-card {
+    flex-direction: column-reverse;
+    text-align: center;
+    gap: 1rem;
+  }
+  .navbar-date { display: none; }
+}
