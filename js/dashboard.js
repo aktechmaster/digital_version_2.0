@@ -76,7 +76,6 @@ function setupProfilePhotoUpload(session) {
       
       const gasUrl = 'https://script.google.com/macros/s/AKfycbxaR1H9owIIS3jTUK-4RjJuyCsTXRAw6sMq9nDh7d8mW7JFRrMnQh5ih3wRYC4y9PPM/exec';
 
-      // PERBAIKAN: Kirim sebagai JSON murni tanpa explicit Content-Type untuk menghindari CORS Preflight
       fetch(gasUrl, {
         method: 'POST',
         body: JSON.stringify({
@@ -130,11 +129,28 @@ function setupDropdownMenu() {
   });
 
   document.getElementById("btnRefresh")?.addEventListener("click", () => location.reload());
-  
+
+  // --- MODAL TENTANG APLIKASI (PERBAIKAN NOMOR 2) ---
+  const modalAbout = document.getElementById("modalAbout");
+  const btnCloseAboutModal = document.getElementById("btnCloseAboutModal");
+  const btnOkAboutModal = document.getElementById("btnOkAboutModal");
+
+  const openAboutModal = () => modalAbout?.classList.add("active");
+  const closeAboutModal = () => modalAbout?.classList.remove("active");
+
   document.getElementById("btnAbout")?.addEventListener("click", () => {
-    alert("SMP DIGITAL V2.0\nPortal Informasi Guru Islam Terpadu Al-Kautsar");
+    dropdownMenu.classList.remove("show");
+    openAboutModal();
   });
 
+  btnCloseAboutModal?.addEventListener("click", closeAboutModal);
+  btnOkAboutModal?.addEventListener("click", closeAboutModal);
+
+  modalAbout?.addEventListener("click", (e) => {
+    if (e.target === modalAbout) closeAboutModal();
+  });
+
+  // --- UBAH PASSWORD ---
   document.getElementById("btnChangePass")?.addEventListener("click", async () => {
     const session = Auth.getSession();
     if (!session || !session.username) {
@@ -175,6 +191,7 @@ function setupDropdownMenu() {
     }
   });
 
+  // --- LOGOUT ---
   document.getElementById("btnLogout")?.addEventListener("click", () => {
     if (confirm("Apakah Anda yakin ingin keluar?")) {
       Auth.logout();
