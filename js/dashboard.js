@@ -194,8 +194,45 @@ function setupDropdownMenu() {
     alert("SMP DIGITAL V2.0\nPortal Informasi Guru Islam Terpadu Al-Kautsar");
   });
 
-  document.getElementById("btnChangePass")?.addEventListener("click", () => {
-    alert("Fitur Ubah Password akan dibuka.");
+  // --- FUNGSI UBAH PASSWORD ---
+  document.getElementById("btnChangePass")?.addEventListener("click", async () => {
+    const session = Auth.getSession();
+    if (!session || !session.username) {
+      alert("Sesi tidak valid. Silakan login kembali.");
+      return;
+    }
+
+    const oldPassword = prompt("Masukkan Password Lama Anda:");
+    if (!oldPassword) return;
+
+    const newPassword = prompt("Masukkan Password Baru Anda:");
+    if (!newPassword) return;
+
+    const confirmPassword = prompt("Konfirmasi Password Baru Anda:");
+    if (newPassword !== confirmPassword) {
+      alert("Password baru dan konfirmasi tidak cocok!");
+      return;
+    }
+
+    const btn = document.getElementById("btnChangePass");
+    const originalText = btn.innerText;
+    btn.innerText = "Memproses...";
+
+    try {
+      const response = await API.changePassword(session.username, oldPassword, newPassword);
+      
+      if (response.status === "success") {
+        alert("Berhasil: " + response.message + "\n\nSilakan login kembali dengan password baru Anda.");
+        Auth.logout(); // Memaksa user logout untuk mencoba password baru
+      } else {
+        alert("Gagal: " + response.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan saat menghubungi server.");
+    } finally {
+      btn.innerText = originalText;
+    }
   });
 
   document.getElementById("btnLogout")?.addEventListener("click", () => {
