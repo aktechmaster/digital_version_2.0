@@ -217,4 +217,27 @@
     gap: 1rem;
   }
   .navbar-date { display: none; }
+
+  /* Tampilan 2 Kolom untuk HP */
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .menu-card {
+    padding: 1rem 0.6rem;
+  }
+
+  .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .card-title {
+    font-size: 0.85rem;
+  }
+
+  .card-desc {
+    font-size: 0.7rem;
+  }
 }
