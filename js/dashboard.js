@@ -47,7 +47,10 @@ function renderWelcomeCard(session) {
   document.getElementById("userNip").innerText = `NIPY: ${nipy}`;
   document.getElementById("userRoleTitle").innerText = jabatan;
 
-  const savedPhoto = localStorage.getItem(`profile_pic_${session.username}`);
+  // PRIORITAS SINKRONISASI FOTO:
+  // 1. Baca foto_profil dari Database (Sesi)
+  // 2. Fallback ke LocalStorage
+  const savedPhoto = session.foto_profil || localStorage.getItem(`profile_pic_${session.username}`);
   if (savedPhoto) {
     document.getElementById("userAvatar").src = savedPhoto;
   }
@@ -90,11 +93,24 @@ function setupProfilePhotoUpload(session) {
         }
         return response.json();
       })
-      .then(data => {
+      .then(async data => {
         if (data.status === 'success') {
-          alert('Foto profil berhasil diperbarui!');
           avatarImg.src = data.url;
+
+          // 1. Simpan ke LocalStorage lokal
           localStorage.setItem(`profile_pic_${session.username}`, data.url);
+
+          // 2. Perbarui Sesi Login Aktif
+          session.foto_profil = data.url;
+          Auth.saveSession(session);
+
+          // 3. Simpan URL foto ke Google Sheets (Kolom H)
+          const dbResponse = await API.updateProfilePhoto(session.username, data.url);
+          if (dbResponse.status === "success") {
+            alert('Foto profil berhasil diperbarui & tersinkron ke database!');
+          } else {
+            alert('Foto berhasil diunggah ke Drive, namun gagal simpan ke database: ' + dbResponse.message);
+          }
         } else {
           alert('Gagal mengupload foto: ' + data.message);
           avatarImg.src = originalSrc;
@@ -130,7 +146,7 @@ function setupDropdownMenu() {
 
   document.getElementById("btnRefresh")?.addEventListener("click", () => location.reload());
 
-  // --- MODAL TENTANG APLIKASI (PERBAIKAN NOMOR 2) ---
+  // MODAL TENTANG APLIKASI
   const modalAbout = document.getElementById("modalAbout");
   const btnCloseAboutModal = document.getElementById("btnCloseAboutModal");
   const btnOkAboutModal = document.getElementById("btnOkAboutModal");
@@ -150,7 +166,7 @@ function setupDropdownMenu() {
     if (e.target === modalAbout) closeAboutModal();
   });
 
-  // --- UBAH PASSWORD ---
+  // UBAH PASSWORD
   document.getElementById("btnChangePass")?.addEventListener("click", async () => {
     const session = Auth.getSession();
     if (!session || !session.username) {
@@ -191,7 +207,7 @@ function setupDropdownMenu() {
     }
   });
 
-  // --- LOGOUT ---
+  // LOGOUT
   document.getElementById("btnLogout")?.addEventListener("click", () => {
     if (confirm("Apakah Anda yakin ingin keluar?")) {
       Auth.logout();
