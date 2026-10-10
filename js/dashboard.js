@@ -149,6 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderWelcomeCard(session);
   renderMenuGrid();
   setupDropdownMenu();
+  setupProfilePhotoUpload(session); // Panggil fungsi upload foto
 });
 
 function renderCurrentDate() {
@@ -166,6 +167,74 @@ function renderWelcomeCard(session) {
   document.getElementById("userFullName").innerText = namaLengkap;
   document.getElementById("userNip").innerText = `NIPY: ${nipy}`;
   document.getElementById("userRoleTitle").innerText = jabatan;
+
+  // Cek apakah ada foto profil tersimpan di localStorage untuk user ini
+  const savedPhoto = localStorage.getItem(`profile_pic_${session.username}`);
+  if (savedPhoto) {
+    document.getElementById("userAvatar").src = savedPhoto;
+  }
+}
+
+function setupProfilePhotoUpload(session) {
+  const avatarImg = document.getElementById("userAvatar");
+  const uploadInput = document.getElementById("upload-foto");
+
+  if (!avatarImg || !uploadInput) return;
+
+  // Klik gambar untuk memicu input file
+  avatarImg.addEventListener("click", () => {
+    uploadInput.click();
+  });
+
+  uploadInput.addEventListener("change", function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Simpan gambar lama jika upload gagal, ubah ke gambar loading
+    const originalSrc = avatarImg.src;
+    avatarImg.src = "https://via.placeholder.com/100?text=Uploading...";
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const base64Data = e.target.result.split(',')[1];
+      
+      // GANTI STRING DI BAWAH INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
+      const gasUrl = 'URL_WEB_APP_ANDA_MASUKKAN_DISINI';
+
+      // Kirim data ke Google Drive via GAS
+      fetch(gasUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          fileName: `Profile_${session.username}_${file.name}`,
+          mimeType: file.type,
+          fileData: base64Data
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert('Foto profil berhasil diperbarui!');
+          avatarImg.src = data.url;
+          // Simpan URL dari Google Drive ke localStorage agar tidak hilang saat refresh
+          localStorage.setItem(`profile_pic_${session.username}`, data.url);
+        } else {
+          alert('Gagal mengupload foto: ' + data.message);
+          avatarImg.src = originalSrc;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan jaringan saat mengupload foto.');
+        avatarImg.src = originalSrc;
+      });
+    };
+    
+    // Baca file sebagai Data URL (Base64)
+    reader.readAsDataURL(file);
+  });
 }
 
 function setupDropdownMenu() {
