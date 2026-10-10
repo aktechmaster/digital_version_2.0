@@ -64,12 +64,18 @@ const Auth = {
 
   // Cek Hak Akses Berdasarkan Flag Permission Boolean (is_wali_kelas, is_wakur, dll)
   hasPermission(permissionName) {
+    // Kategori A (Umum) selalu diizinkan untuk semua user
+    if (permissionName === "always") return true;
+
     const session = this.getSession();
-    if (!session || !session.permissions) return false;
+    if (!session) return false;
     
-    // Admin otomatis memiliki akses penuh
+    // Admin & Kepsek otomatis memiliki akses penuh ke seluruh menu
     if (session.role === "Admin" || session.role === "Kepsek") return true;
 
+    if (!session.permissions) return false;
+
+    // Memeriksa flag boolean spesifik dari database (is_wali_kelas, is_wakur, is_t2q, is_bpi, is_ekstra)
     return Boolean(session.permissions[permissionName]);
   }
 };
