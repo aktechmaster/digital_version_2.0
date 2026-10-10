@@ -199,7 +199,7 @@ function setupProfilePhotoUpload(session) {
       const base64Data = e.target.result.split(',')[1];
       
       // GANTI STRING DI BAWAH INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
-      const gasUrl = 'URL_WEB_APP_ANDA_MASUKKAN_DISINI';
+      const gasUrl = 'https://script.google.com/macros/s/AKfycbxaR1H9owIIS3jTUK-4RjJuyCsTXRAw6sMq9nDh7d8mW7JFRrMnQh5ih3wRYC4y9PPM/exec';
 
       // Kirim data ke Google Drive via GAS
       fetch(gasUrl, {
