@@ -60,6 +60,15 @@ const API = {
     });
   },
 
+  // Update Foto Profil ke Database (Kolom H / foto_profil)
+  async updateProfilePhoto(username, photoUrl) {
+    return await this._post({
+      action: "updateProfilePhoto",
+      username: username,
+      photoUrl: photoUrl
+    });
+  },
+
   // Ubah Password User
   async changePassword(username, oldPassword, newPassword) {
     return await this._post({
