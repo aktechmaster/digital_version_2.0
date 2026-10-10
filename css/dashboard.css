@@ -216,50 +216,6 @@
   color: var(--text-muted);
 }
 
-/* Responsive Styles untuk HP */
-@media (max-width: 640px) {
-  .welcome-card {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.2rem;
-    gap: 1rem;
-  }
-  
-  .welcome-info h2 {
-    font-size: 1.2rem;
-  }
-
-  .welcome-info .role-title {
-    margin-bottom: 0.4rem;
-  }
-
-  .navbar-date { display: none; }
-
-  .menu-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-
-  .menu-card {
-    padding: 1rem 0.6rem;
-  }
-
-  .card-icon {
-    font-size: 1.6rem;
-    margin-bottom: 0.3rem;
-  }
-
-  .card-title {
-    font-size: 0.85rem;
-  }
-
-  .card-desc {
-    font-size: 0.7rem;
-  }
-}
-
 /* Custom Modern Modal Popup */
 .modal-overlay {
   position: fixed;
@@ -391,4 +347,48 @@
 
 .btn-modal-close:hover {
   opacity: 0.9;
+}
+
+/* Responsive Styles untuk HP */
+@media (max-width: 640px) {
+  .welcome-card {
+    display: flex;
+    flex-direction: column-reverse; /* Memindahkan foto ke paling atas */
+    align-items: center;            /* Posisi tengah secara horizontal */
+    text-align: center;             /* Teks rata tengah */
+    padding: 1.5rem 1.2rem;
+    gap: 1rem;
+  }
+  
+  .welcome-info h2 {
+    font-size: 1.25rem;
+  }
+
+  .welcome-info .role-title {
+    margin-bottom: 0.4rem;
+  }
+
+  .navbar-date { display: none; }
+
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .menu-card {
+    padding: 1rem 0.6rem;
+  }
+
+  .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .card-title {
+    font-size: 0.85rem;
+  }
+
+  .card-desc {
+    font-size: 0.7rem;
+  }
 }
