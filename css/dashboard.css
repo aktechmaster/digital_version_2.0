@@ -108,6 +108,9 @@
   max-width: 1100px;
   margin: 1.5rem auto;
   padding: 0 1rem;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Welcome Banner Card */
@@ -123,6 +126,8 @@
   margin-bottom: 2rem;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .welcome-info h2 {
@@ -162,6 +167,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 1.2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .menu-card {
@@ -209,16 +216,27 @@
   color: var(--text-muted);
 }
 
-/* Responsive Styles */
+/* Responsive Styles untuk HP */
 @media (max-width: 640px) {
   .welcome-card {
-    flex-direction: column-reverse;
-    text-align: center;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem;
     gap: 1rem;
   }
+  
+  .welcome-info h2 {
+    font-size: 1.2rem;
+  }
+
+  .welcome-info .role-title {
+    margin-bottom: 0.4rem;
+  }
+
   .navbar-date { display: none; }
 
-  /* Tampilan 2 Kolom untuk HP */
   .menu-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
