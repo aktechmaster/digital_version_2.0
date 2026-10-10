@@ -40,7 +40,13 @@
         <p class="role-title" id="userRoleTitle">Guru</p>
         <p class="school-tag">Dashboard Informasi Guru Islam Terpadu Al-Kautsar</p>
       </div>
-      <img id="userAvatar" src="https://via.placeholder.com/100?text=Guru" alt="Foto Profil" class="profile-avatar">
+      
+      <!-- Container Foto Profil -->
+      <div class="profile-photo-container" style="text-align: center; cursor: pointer;" title="Klik untuk mengubah foto profil">
+        <img id="userAvatar" src="https://via.placeholder.com/100?text=Guru" alt="Foto Profil" class="profile-avatar">
+        <input type="file" id="upload-foto" accept="image/*" style="display: none;">
+        <p style="font-size: 0.8rem; margin-top: 8px; color: #fff; text-decoration: underline; opacity: 0.9;">Ubah Foto</p>
+      </div>
     </div>
 
     <!-- Dynamic Role-Based Menu Grid -->
