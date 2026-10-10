@@ -1,23 +1,29 @@
 /**
  * js/dashboard.js - Dynamic Menu Renderer & Dashboard Logic
- * (MODE TEMPORARY: Semua menu ditampilkan tanpa pembatasan peran untuk pengujian UI)
  */
 
 const MENU_CATALOG = [
+  // A. UMUM (SEMUA GURU)
   { id: "jurnal_harian", title: "Jurnal Harian", desc: "Klik untuk input jurnal harian KBM.", icon: "📅", accent: "blue", permission: "always", link: "https://google.com" },
-  { id: "jurnal_t2q", title: "Jurnal T2Q", desc: "Tahsin & Tahfidz Al-Qur'an.", icon: "📖", accent: "purple", permission: "is_t2q", link: "https://google.com" },
   { id: "jadwal_mengajar", title: "Jadwal Mengajar", desc: "Cek jadwal KBM Anda hari ini.", icon: "⌚", accent: "blue", permission: "always", modal: "modalJadwal" },
-  { id: "absensi_siswa", title: "Absensi Siswa", desc: "Rekap kehadiran siswa harian.", icon: "📝", accent: "cyan", permission: "is_wali_kelas", link: "https://google.com" },
   { id: "laporan_kinerja", title: "Laporan Kinerja", desc: "Klik untuk melihat statistik: Jurnal, Piket, dan Absensi.", icon: "📊", accent: "orange", permission: "always", modal: "modalKinerja" },
   { id: "biodata_guru", title: "Biodata Guru", desc: "Klik untuk melihat data pribadi & kepegawaian.", icon: "👤", accent: "green", permission: "always", modal: "modalBiodata" },
-  { id: "jurnal_bpi", title: "Jurnal BPI", desc: "Klik untuk input laporan Bina Pribadi Islam.", icon: "☪️", accent: "purple", permission: "is_bpi", link: "https://google.com" },
   { id: "input_nilai", title: "Input Nilai", desc: "Klik untuk rekap nilai siswa.", icon: "📋", accent: "cyan", permission: "always", link: "https://google.com" },
   { id: "pusat_laporan", title: "Menuju Pusat Laporan", desc: "Lihat semua rekap & laporan terpusat.", icon: "🏠", accent: "cyan", permission: "always", link: "https://google.com" },
+  { id: "jurnal_perilaku", title: "Jurnal Perilaku & Sikap", desc: "Khusus Guru & Wali Kelas.", icon: "📓", accent: "purple", permission: "always", link: "https://google.com" },
+
+  // B. KHUSUS 1
+  { id: "jurnal_t2q", title: "Jurnal T2Q", desc: "Tahsin & Tahfidz Al-Qur'an.", icon: "📖", accent: "purple", permission: "is_t2q", link: "https://google.com" },
+  { id: "jurnal_bpi", title: "Jurnal BPI", desc: "Klik untuk input laporan Bina Pribadi Islam.", icon: "☪️", accent: "purple", permission: "is_bpi", link: "https://google.com" },
   { id: "jurnal_ekstra", title: "Jurnal Ekstra", desc: "Khusus Pembina Ekstrakurikuler.", icon: "⚽", accent: "blue", permission: "is_ekstra", link: "https://google.com" },
+
+  // C. KHUSUS 2 (WAKUR)
   { id: "absensi_karyawan", title: "Absensi Karyawan", desc: "Khusus Waka Kurikulum.", icon: "📋", accent: "cyan", permission: "is_wakur", link: "https://google.com" },
   { id: "input_piket", title: "Input Piket", desc: "Khusus Waka Kurikulum & PMA.", icon: "✍️", accent: "orange", permission: "is_wakur", link: "https://google.com" },
   { id: "laporan_piket", title: "Laporan Piket", desc: "Rekap data piket harian.", icon: "📊", accent: "green", permission: "is_wakur", link: "https://google.com" },
-  { id: "jurnal_perilaku", title: "Jurnal Perilaku & Sikap", desc: "Khusus Guru & Wali Kelas.", icon: "📓", accent: "purple", permission: "is_wali_kelas", link: "https://google.com" },
+
+  // D. KHUSUS WALI KELAS
+  { id: "absensi_siswa", title: "Absensi Siswa", desc: "Rekap kehadiran siswa harian.", icon: "📝", accent: "cyan", permission: "is_wali_kelas", link: "https://google.com" },
   { id: "nilai_karakter", title: "Input Nilai Karakter", desc: "Khusus Wali Kelas.", icon: "🌟", accent: "orange", permission: "is_wali_kelas", link: "https://google.com" }
 ];
 
@@ -221,6 +227,9 @@ function renderMenuGrid() {
   menuGrid.innerHTML = "";
 
   MENU_CATALOG.forEach(item => {
+    // FILTRASI OTORISASI PERMISSION USER
+    if (!Auth.hasPermission(item.permission)) return;
+
     const card = document.createElement("a");
     card.className = "menu-card";
     card.setAttribute("data-accent", item.accent);
