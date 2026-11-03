@@ -4,7 +4,7 @@
 
 const MENU_CATALOG = [
   // A. UMUM (SEMUA GURU)
-  { id: "jurnal_harian", title: "Jurnal Harian", desc: "Klik untuk input jurnal harian KBM.", icon: "📅", accent: "blue", permission: "always", link: "https://google.com" },
+  { id: "jurnal_harian", title: "Jurnal Harian", desc: "Klik untuk input jurnal harian KBM.", icon: "📅", accent: "blue", permission: "always", link: "https://aktechmaster.github.io/SMP_Jurnal-Mengajar-Harian-New/" },
   { id: "jadwal_mengajar", title: "Jadwal Mengajar", desc: "Cek jadwal KBM Anda hari ini.", icon: "⌚", accent: "blue", permission: "always", modal: "modalJadwal" },
   { id: "laporan_kinerja", title: "Laporan Kinerja", desc: "Klik untuk melihat statistik: Jurnal, Piket, dan Absensi.", icon: "📊", accent: "orange", permission: "always", modal: "modalKinerja" },
   { id: "biodata_guru", title: "Biodata Guru", desc: "Klik untuk melihat data pribadi & kepegawaian.", icon: "👤", accent: "green", permission: "always", modal: "modalBiodata" },
