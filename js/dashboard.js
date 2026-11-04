@@ -346,7 +346,7 @@ async function openJadwalModal() {
     }
   });
 
-  // 4. Render HTML Tabel Jadwal dengan Pengelompokan Otomatis
+  // 4. Render HTML Tabel Jadwal
   let html = "";
   daysOrder.forEach(hari => {
     const dayItems = groupedByDay[hari];
@@ -358,7 +358,7 @@ async function openJadwalModal() {
     if (dayItems.length === 0) {
       html += `<p style="color: #888; font-size: 0.9rem; padding-left: 12px;">Tidak ada jadwal mengajar.</p>`;
     } else {
-      // --- A. GABUNGKAN KELAS PARALEL PADA JAM YANG SAMA ---
+      // Grouping per Jam Pelajaran
       const jamMap = {};
       dayItems.forEach(item => {
         const jam = Number(item.jam_ke);
@@ -366,8 +366,9 @@ async function openJadwalModal() {
         jamMap[jam].push(item);
       });
 
+      // Urutkan Jam Pelajaran ke Bawah (1, 2, 3, 4, 5, 6 ...)
       const sortedJams = Object.keys(jamMap).map(Number).sort((a, b) => a - b);
-      const mergedJamList = [];
+      const displayRows = [];
 
       sortedJams.forEach(jam => {
         const itemsAtJam = jamMap[jam];
@@ -379,7 +380,7 @@ async function openJadwalModal() {
           const mapelName = getMapelName(it.id_ma || it.id_mapel);
           const kelasName = getKelasName(it.id_ke || it.id_kelas);
           
-          const key = `${mapelName}_${isTeam}`;
+          const key = `${mapelName}`;
           if (!mapelGroup[key]) {
             mapelGroup[key] = {
               jam: jam,
@@ -393,67 +394,45 @@ async function openJadwalModal() {
           }
         });
 
-        Object.values(mapelGroup).forEach(g => mergedJamList.push(g));
+        // Format Tampilan Nama Kelas
+        Object.values(mapelGroup).forEach(g => {
+          let namaKelasFinal = "";
+          const isT2Q = g.isTeam || g.mapelName.toLowerCase().includes("t2q") || g.mapelName.toLowerCase().includes("tahsin") || g.mapelName.toLowerCase().includes("tahfidz");
+          
+          if (isT2Q) {
+            // Ambil tingkat angka depan kelas (misal "7 Al-Anhar" -> "Kelas 7")
+            const match = g.kelasList[0]?.match(/^(\d+)/);
+            namaKelasFinal = match ? `Kelas ${match[1]}` : `Kelas ${g.kelasList[0]}`;
+          } else {
+            namaKelasFinal = g.kelasList.join(", ");
+          }
+
+          displayRows.push({
+            jam: g.jam,
+            kelas: namaKelasFinal,
+            mapelName: g.mapelName
+          });
+        });
       });
 
-      // --- B. GABUNGKAN RENTANG JAM BERURUTAN (misal Jam 4, 5, 6 -> 4 - 6) ---
-      const finalDisplayRows = [];
-      let currentBlock = null;
-
-      mergedJamList.forEach(item => {
-        const kelasStr = item.isTeam && item.kelasList.length > 1 
-          ? `Kelas 7 (${item.kelasList.join(", ")})` 
-          : item.kelasList.join(", ");
-
-        if (!currentBlock) {
-          currentBlock = {
-            startJam: item.jam,
-            endJam: item.jam,
-            kelas: kelasStr,
-            mapelName: item.mapelName,
-            isTeam: item.isTeam
-          };
-        } else if (
-          item.jam === currentBlock.endJam + 1 &&
-          kelasStr === currentBlock.kelas &&
-          item.mapelName === currentBlock.mapelName &&
-          item.isTeam === currentBlock.isTeam
-        ) {
-          currentBlock.endJam = item.jam;
-        } else {
-          finalDisplayRows.push(currentBlock);
-          currentBlock = {
-            startJam: item.jam,
-            endJam: item.jam,
-            kelas: kelasStr,
-            mapelName: item.mapelName,
-            isTeam: item.isTeam
-          };
-        }
-      });
-      if (currentBlock) finalDisplayRows.push(currentBlock);
-
-      // --- C. RENDER TABEL ---
+      // Render Tabel Tanpa Gabung Jam & Tanpa Tag (Tim Pengajar)
       html += `
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.95rem;">
           <thead>
             <tr style="background-color: #f8f9fa; text-align: left; border-bottom: 2px solid #dee2e6;">
-              <th style="padding: 8px; width: 90px;">Jam Ke</th>
-              <th style="padding: 8px;">Kelas</th>
+              <th style="padding: 8px; width: 80px;">Jam Ke</th>
+              <th style="padding: 8px; width: 140px;">Kelas</th>
               <th style="padding: 8px;">Mata Pelajaran / Kelompok</th>
             </tr>
           </thead>
           <tbody>`;
       
-      finalDisplayRows.forEach(row => {
-        const jamLabel = row.startJam === row.endJam ? `${row.startJam}` : `${row.startJam} - ${row.endJam}`;
-        const tagTim = row.isTeam ? ` <span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">(Tim Pengajar)</span>` : "";
-        
+      displayRows.forEach(row => {
         html += `
           <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 8px; font-weight: bold;">${jamLabel}</td>
+            <td style="padding: 8px; font-weight: bold; text-align: center;">${row.jam}</td>
             <td style="padding: 8px;">${row.kelas}</td>
-            <td style="padding: 8px;">${row.mapelName}${tagTim}</td>
+            <td style="padding: 8px;">${row.mapelName}</td>
           </tr>`;
       });
       
