@@ -303,46 +303,6 @@ async function openJadwalModal() {
 
   const { Jadwal = [], Tim_Pengajar = [], Mapel = [], Kelas = [] } = response.data;
 
-  // 1. Cari daftar ID Tim yang diikuti guru ini
-  const userTeamIds = Tim_Pengajar
-    .filter(tp => String(tp.id_guru || tp.id_g || "").trim().toLowerCase() === currentIdGuru)
-    .map(tp => String(tp.id_tim || "").trim().toLowerCase());
-
-  // 2. Filter jadwal individu ATAU jadwal tim
-  const rawSchedules = Jadwal.filter(j => {
-    const idG = String(j.id_g || j.id_guru || "").trim().toLowerCase();
-    return idG === currentIdGuru || userTeamIds.includes(idG);
-  });
-
-  // 3. DEDUPLIKASI: Saring agar data yang persis sama tidak ditampilkan 2x
-  const userSchedules = [];
-  const seenKeys = new Set();
-
-  rawSchedules.forEach(j => {
-    const hari = String(j.hari || "").trim().toLowerCase();
-    const jamKe = String(j.jam_ke || "").trim();
-    const idKelas = String(j.id_ke || j.id_kelas || "").trim().toLowerCase();
-    const idMapel = String(j.id_ma || j.id_mapel || "").trim().toLowerCase();
-    const idJadwal = String(j.id_jadwal || "").trim();
-
-    // Buat kunci unik (Prioritas id_jadwal, jika tidak ada gunakan kombinasi hari-jam-kelas-mapel)
-    const uniqueKey = idJadwal ? idJadwal : `${hari}_${jamKe}_${idKelas}_${idMapel}`;
-
-    if (!seenKeys.has(uniqueKey)) {
-      seenKeys.add(uniqueKey);
-      userSchedules.push(j);
-    }
-  });
-
-  if (userSchedules.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 30px 10px;">
-        <p style="margin-bottom: 8px; font-weight: bold; color: #555;">Belum ada jadwal mengajar yang terdaftar untuk Anda.</p>
-        <small style="color: #888;">(ID Guru Aktif: <b>${session.id_guru}</b>)</small>
-      </div>`;
-    return;
-  }
-
   // Helper Pencarian Nama Mapel dan Kelas
   const getMapelName = (idMapel) => {
     const m = Mapel.find(x => String(x.id_mapel || x.id_ma || "").trim().toLowerCase() === String(idMapel).trim().toLowerCase());
@@ -354,51 +314,146 @@ async function openJadwalModal() {
     return k ? (k.nama_kelas || k.nama || idKelas) : idKelas;
   };
 
-  // 4. Kelompokkan Berdasarkan Hari
+  // 1. Cari daftar ID Tim yang diikuti guru ini
+  const userTeamIds = Tim_Pengajar
+    .filter(tp => String(tp.id_guru || tp.id_g || "").trim().toLowerCase() === currentIdGuru)
+    .map(tp => String(tp.id_tim || "").trim().toLowerCase());
+
+  // 2. Filter jadwal individu ATAU jadwal tim
+  const rawSchedules = Jadwal.filter(j => {
+    const idG = String(j.id_g || j.id_guru || "").trim().toLowerCase();
+    return idG === currentIdGuru || userTeamIds.includes(idG);
+  });
+
+  if (rawSchedules.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 30px 10px;">
+        <p style="margin-bottom: 8px; font-weight: bold; color: #555;">Belum ada jadwal mengajar yang terdaftar untuk Anda.</p>
+        <small style="color: #888;">(ID Guru Aktif: <b>${session.id_guru}</b>)</small>
+      </div>`;
+    return;
+  }
+
+  // 3. Kelompokkan Berdasarkan Hari
   const daysOrder = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
   const groupedByDay = {};
   daysOrder.forEach(day => groupedByDay[day] = []);
 
-  userSchedules.forEach(item => {
+  rawSchedules.forEach(item => {
     const hariKey = daysOrder.find(d => d.toLowerCase() === String(item.hari || "").trim().toLowerCase());
     if (hariKey) {
       groupedByDay[hariKey].push(item);
     }
   });
 
-  // 5. Render HTML Tabel Jadwal
+  // 4. Render HTML Tabel Jadwal dengan Pengelompokan Otomatis
   let html = "";
   daysOrder.forEach(hari => {
-    const list = groupedByDay[hari].sort((a, b) => Number(a.jam_ke) - Number(b.jam_ke));
+    const dayItems = groupedByDay[hari];
     
     html += `
       <div style="margin-bottom: 20px;">
-        <h4 style="background: #eef2f7; padding: 8px 12px; border-left: 4px solid #00a86b; margin-bottom: 10px; border-radius: 4px;">${hari}</h4>`;
+        <h4 style="background: #eef2f7; padding: 8px 12px; border-left: 4px solid #00a86b; margin-bottom: 10px; border-radius: 4px; color: #2c3e50;">${hari}</h4>`;
     
-    if (list.length === 0) {
+    if (dayItems.length === 0) {
       html += `<p style="color: #888; font-size: 0.9rem; padding-left: 12px;">Tidak ada jadwal mengajar.</p>`;
     } else {
+      // --- A. GABUNGKAN KELAS PARALEL PADA JAM YANG SAMA ---
+      const jamMap = {};
+      dayItems.forEach(item => {
+        const jam = Number(item.jam_ke);
+        if (!jamMap[jam]) jamMap[jam] = [];
+        jamMap[jam].push(item);
+      });
+
+      const sortedJams = Object.keys(jamMap).map(Number).sort((a, b) => a - b);
+      const mergedJamList = [];
+
+      sortedJams.forEach(jam => {
+        const itemsAtJam = jamMap[jam];
+        const mapelGroup = {};
+
+        itemsAtJam.forEach(it => {
+          const idG = String(it.id_g || it.id_guru || "").trim().toLowerCase();
+          const isTeam = userTeamIds.includes(idG);
+          const mapelName = getMapelName(it.id_ma || it.id_mapel);
+          const kelasName = getKelasName(it.id_ke || it.id_kelas);
+          
+          const key = `${mapelName}_${isTeam}`;
+          if (!mapelGroup[key]) {
+            mapelGroup[key] = {
+              jam: jam,
+              mapelName: mapelName,
+              isTeam: isTeam,
+              kelasList: []
+            };
+          }
+          if (!mapelGroup[key].kelasList.includes(kelasName)) {
+            mapelGroup[key].kelasList.push(kelasName);
+          }
+        });
+
+        Object.values(mapelGroup).forEach(g => mergedJamList.push(g));
+      });
+
+      // --- B. GABUNGKAN RENTANG JAM BERURUTAN (misal Jam 4, 5, 6 -> 4 - 6) ---
+      const finalDisplayRows = [];
+      let currentBlock = null;
+
+      mergedJamList.forEach(item => {
+        const kelasStr = item.isTeam && item.kelasList.length > 1 
+          ? `Kelas 7 (${item.kelasList.join(", ")})` 
+          : item.kelasList.join(", ");
+
+        if (!currentBlock) {
+          currentBlock = {
+            startJam: item.jam,
+            endJam: item.jam,
+            kelas: kelasStr,
+            mapelName: item.mapelName,
+            isTeam: item.isTeam
+          };
+        } else if (
+          item.jam === currentBlock.endJam + 1 &&
+          kelasStr === currentBlock.kelas &&
+          item.mapelName === currentBlock.mapelName &&
+          item.isTeam === currentBlock.isTeam
+        ) {
+          currentBlock.endJam = item.jam;
+        } else {
+          finalDisplayRows.push(currentBlock);
+          currentBlock = {
+            startJam: item.jam,
+            endJam: item.jam,
+            kelas: kelasStr,
+            mapelName: item.mapelName,
+            isTeam: item.isTeam
+          };
+        }
+      });
+      if (currentBlock) finalDisplayRows.push(currentBlock);
+
+      // --- C. RENDER TABEL ---
       html += `
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.95rem;">
           <thead>
             <tr style="background-color: #f8f9fa; text-align: left; border-bottom: 2px solid #dee2e6;">
-              <th style="padding: 8px; width: 80px;">Jam Ke</th>
-              <th style="padding: 8px; width: 120px;">Kelas</th>
+              <th style="padding: 8px; width: 90px;">Jam Ke</th>
+              <th style="padding: 8px;">Kelas</th>
               <th style="padding: 8px;">Mata Pelajaran / Kelompok</th>
             </tr>
           </thead>
           <tbody>`;
       
-      list.forEach(j => {
-        const idG = String(j.id_g || j.id_guru || "").trim().toLowerCase();
-        const isTeam = userTeamIds.includes(idG);
-        const tagTim = isTeam ? ` <span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">(Tim Pengajar)</span>` : "";
+      finalDisplayRows.forEach(row => {
+        const jamLabel = row.startJam === row.endJam ? `${row.startJam}` : `${row.startJam} - ${row.endJam}`;
+        const tagTim = row.isTeam ? ` <span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">(Tim Pengajar)</span>` : "";
         
         html += `
           <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 8px; font-weight: bold;">${j.jam_ke}</td>
-            <td style="padding: 8px;">${getKelasName(j.id_ke || j.id_kelas)}</td>
-            <td style="padding: 8px;">${getMapelName(j.id_ma || j.id_mapel)}${tagTim}</td>
+            <td style="padding: 8px; font-weight: bold;">${jamLabel}</td>
+            <td style="padding: 8px;">${row.kelas}</td>
+            <td style="padding: 8px;">${row.mapelName}${tagTim}</td>
           </tr>`;
       });
       
