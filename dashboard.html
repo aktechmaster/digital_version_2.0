@@ -79,6 +79,22 @@
     </div>
   </div>
 
+  <!-- Modal Popup Jadwal Mengajar (DITAMBAHKAN DI SINI) -->
+  <div id="modalJadwal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 800px; width: 90%;">
+      <div class="modal-header">
+        <h3>Jadwal Mengajar Pekanan</h3>
+        <button class="modal-close-btn" id="btnCloseJadwalModal">&times;</button>
+      </div>
+      <div class="modal-body" id="jadwalContentContainer" style="max-height: 70vh; overflow-y: auto;">
+        <p style="text-align: center; color: #666;">Memuat jadwal pelajaran...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-close" id="btnOkJadwalModal">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
