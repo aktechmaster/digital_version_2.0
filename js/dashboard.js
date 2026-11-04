@@ -309,9 +309,29 @@ async function openJadwalModal() {
     .map(tp => String(tp.id_tim || "").trim().toLowerCase());
 
   // 2. Filter jadwal individu ATAU jadwal tim
-  const userSchedules = Jadwal.filter(j => {
+  const rawSchedules = Jadwal.filter(j => {
     const idG = String(j.id_g || j.id_guru || "").trim().toLowerCase();
     return idG === currentIdGuru || userTeamIds.includes(idG);
+  });
+
+  // 3. DEDUPLIKASI: Saring agar data yang persis sama tidak ditampilkan 2x
+  const userSchedules = [];
+  const seenKeys = new Set();
+
+  rawSchedules.forEach(j => {
+    const hari = String(j.hari || "").trim().toLowerCase();
+    const jamKe = String(j.jam_ke || "").trim();
+    const idKelas = String(j.id_ke || j.id_kelas || "").trim().toLowerCase();
+    const idMapel = String(j.id_ma || j.id_mapel || "").trim().toLowerCase();
+    const idJadwal = String(j.id_jadwal || "").trim();
+
+    // Buat kunci unik (Prioritas id_jadwal, jika tidak ada gunakan kombinasi hari-jam-kelas-mapel)
+    const uniqueKey = idJadwal ? idJadwal : `${hari}_${jamKe}_${idKelas}_${idMapel}`;
+
+    if (!seenKeys.has(uniqueKey)) {
+      seenKeys.add(uniqueKey);
+      userSchedules.push(j);
+    }
   });
 
   if (userSchedules.length === 0) {
@@ -334,7 +354,7 @@ async function openJadwalModal() {
     return k ? (k.nama_kelas || k.nama || idKelas) : idKelas;
   };
 
-  // 3. Kelompokkan Berdasarkan Hari
+  // 4. Kelompokkan Berdasarkan Hari
   const daysOrder = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
   const groupedByDay = {};
   daysOrder.forEach(day => groupedByDay[day] = []);
@@ -346,7 +366,7 @@ async function openJadwalModal() {
     }
   });
 
-  // 4. Render HTML Tabel Jadwal
+  // 5. Render HTML Tabel Jadwal
   let html = "";
   daysOrder.forEach(hari => {
     const list = groupedByDay[hari].sort((a, b) => Number(a.jam_ke) - Number(b.jam_ke));
