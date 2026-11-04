@@ -346,7 +346,7 @@ async function openJadwalModal() {
     }
   });
 
-  // 4. Render HTML Tabel Jadwal
+  // 4. Render HTML Tabel Jadwal Presisi & Simetris
   let html = "";
   daysOrder.forEach(hari => {
     const dayItems = groupedByDay[hari];
@@ -366,7 +366,7 @@ async function openJadwalModal() {
         jamMap[jam].push(item);
       });
 
-      // Urutkan Jam Pelajaran ke Bawah (1, 2, 3, 4, 5, 6 ...)
+      // Urutkan Jam Pelajaran ke Bawah (1, 2, 3, 4...)
       const sortedJams = Object.keys(jamMap).map(Number).sort((a, b) => a - b);
       const displayRows = [];
 
@@ -400,7 +400,6 @@ async function openJadwalModal() {
           const isT2Q = g.isTeam || g.mapelName.toLowerCase().includes("t2q") || g.mapelName.toLowerCase().includes("tahsin") || g.mapelName.toLowerCase().includes("tahfidz");
           
           if (isT2Q) {
-            // Ambil tingkat angka depan kelas (misal "7 Al-Anhar" -> "Kelas 7")
             const match = g.kelasList[0]?.match(/^(\d+)/);
             namaKelasFinal = match ? `Kelas ${match[1]}` : `Kelas ${g.kelasList[0]}`;
           } else {
@@ -415,14 +414,14 @@ async function openJadwalModal() {
         });
       });
 
-      // Render Tabel Tanpa Gabung Jam & Tanpa Tag (Tim Pengajar)
+      // Render Tabel dengan Alignment Simetris Sempurna
       html += `
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.95rem;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.95rem; table-layout: fixed;">
           <thead>
-            <tr style="background-color: #f8f9fa; text-align: left; border-bottom: 2px solid #dee2e6;">
-              <th style="padding: 8px; width: 80px;">Jam Ke</th>
-              <th style="padding: 8px; width: 140px;">Kelas</th>
-              <th style="padding: 8px;">Mata Pelajaran / Kelompok</th>
+            <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+              <th style="padding: 10px 12px; width: 18%; text-align: center; color: #495057;">Jam Ke</th>
+              <th style="padding: 10px 12px; width: 32%; text-align: left; color: #495057;">Kelas</th>
+              <th style="padding: 10px 12px; width: 50%; text-align: left; color: #495057;">Mata Pelajaran / Kelompok</th>
             </tr>
           </thead>
           <tbody>`;
@@ -430,9 +429,9 @@ async function openJadwalModal() {
       displayRows.forEach(row => {
         html += `
           <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 8px; font-weight: bold; text-align: center;">${row.jam}</td>
-            <td style="padding: 8px;">${row.kelas}</td>
-            <td style="padding: 8px;">${row.mapelName}</td>
+            <td style="padding: 10px 12px; font-weight: bold; text-align: center; color: #212529;">${row.jam}</td>
+            <td style="padding: 10px 12px; text-align: left; color: #212529;">${row.kelas}</td>
+            <td style="padding: 10px 12px; text-align: left; color: #212529;">${row.mapelName}</td>
           </tr>`;
       });
       
