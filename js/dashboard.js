@@ -285,84 +285,101 @@ async function openJadwalModal() {
   if (!modal || !container) return;
   
   modal.classList.add("active");
-  container.innerHTML = "<p class='text-center'>Memuat jadwal pelajaran...</p>";
+  container.innerHTML = "<p style='text-align:center; padding: 20px;'>Memuat jadwal pelajaran...</p>";
 
   const session = Auth.getSession();
-  if (!session || !session.id_guru) {
-    container.innerHTML = "<p class='text-center text-danger'>Data ID Guru tidak ditemukan dalam sesi login.</p>";
+  const currentIdGuru = String(session?.id_guru || "").trim().toLowerCase();
+
+  if (!currentIdGuru) {
+    container.innerHTML = "<p style='text-align:center; color:red; padding: 20px;'>ID Guru tidak ditemukan pada sesi login.</p>";
     return;
   }
 
   const response = await API.readAllMaster();
-  if (response.status !== "success") {
-    container.innerHTML = "<p class='text-center text-danger'>Gagal mengambil data jadwal dari server.</p>";
+  if (response.status !== "success" || !response.data) {
+    container.innerHTML = "<p style='text-align:center; color:red; padding: 20px;'>Gagal mengambil data dari server.</p>";
     return;
   }
 
   const { Jadwal = [], Tim_Pengajar = [], Mapel = [], Kelas = [] } = response.data;
-  const currentIdGuru = String(session.id_guru).trim();
 
   // 1. Cari daftar ID Tim yang diikuti guru ini
   const userTeamIds = Tim_Pengajar
-    .filter(tp => String(tp.id_guru).trim() === currentIdGuru)
-    .map(tp => String(tp.id_tim).trim());
+    .filter(tp => String(tp.id_guru || tp.id_g || "").trim().toLowerCase() === currentIdGuru)
+    .map(tp => String(tp.id_tim || "").trim().toLowerCase());
 
-  // 2. Filter jadwal berdasarkan ID Guru langsung ATAU ID Tim
+  // 2. Filter jadwal individu ATAU jadwal tim
   const userSchedules = Jadwal.filter(j => {
-    const idG = String(j.id_g).trim();
+    const idG = String(j.id_g || j.id_guru || "").trim().toLowerCase();
     return idG === currentIdGuru || userTeamIds.includes(idG);
   });
 
   if (userSchedules.length === 0) {
-    container.innerHTML = "<p class='text-center'>Belum ada jadwal mengajar yang terdaftar untuk Anda.</p>";
+    container.innerHTML = `
+      <div style="text-align: center; padding: 30px 10px;">
+        <p style="margin-bottom: 8px; font-weight: bold; color: #555;">Belum ada jadwal mengajar yang terdaftar untuk Anda.</p>
+        <small style="color: #888;">(ID Guru Aktif: <b>${session.id_guru}</b>)</small>
+      </div>`;
     return;
   }
 
-  // Helper pencarian nama Mapel dan Kelas
-  const getMapelName = (idMapel) => Mapel.find(m => String(m.id_mapel).trim() === String(idMapel).trim())?.nama_mapel || idMapel;
-  const getKelasName = (idKelas) => Kelas.find(k => String(k.id_kelas).trim() === String(idKelas).trim())?.nama_kelas || idKelas;
+  // Helper Pencarian Nama Mapel dan Kelas
+  const getMapelName = (idMapel) => {
+    const m = Mapel.find(x => String(x.id_mapel || x.id_ma || "").trim().toLowerCase() === String(idMapel).trim().toLowerCase());
+    return m ? (m.nama_mapel || m.nama || idMapel) : idMapel;
+  };
 
-  // 3. Kelompokkan berdasarkan Hari
+  const getKelasName = (idKelas) => {
+    const k = Kelas.find(x => String(x.id_kelas || x.id_ke || "").trim().toLowerCase() === String(idKelas).trim().toLowerCase());
+    return k ? (k.nama_kelas || k.nama || idKelas) : idKelas;
+  };
+
+  // 3. Kelompokkan Berdasarkan Hari
   const daysOrder = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
   const groupedByDay = {};
   daysOrder.forEach(day => groupedByDay[day] = []);
 
   userSchedules.forEach(item => {
-    const hari = String(item.hari).trim();
-    if (groupedByDay[hari]) {
-      groupedByDay[hari].push(item);
+    const hariKey = daysOrder.find(d => d.toLowerCase() === String(item.hari || "").trim().toLowerCase());
+    if (hariKey) {
+      groupedByDay[hariKey].push(item);
     }
   });
 
-  // 4. Render ke HTML
+  // 4. Render HTML Tabel Jadwal
   let html = "";
   daysOrder.forEach(hari => {
     const list = groupedByDay[hari].sort((a, b) => Number(a.jam_ke) - Number(b.jam_ke));
     
-    html += `<div class="jadwal-day-section mb-3">
-      <h4 class="day-title">${hari}</h4>`;
+    html += `
+      <div style="margin-bottom: 20px;">
+        <h4 style="background: #eef2f7; padding: 8px 12px; border-left: 4px solid #00a86b; margin-bottom: 10px; border-radius: 4px;">${hari}</h4>`;
     
     if (list.length === 0) {
-      html += `<p class="text-muted small">Tidak ada jadwal mengajar.</p>`;
+      html += `<p style="color: #888; font-size: 0.9rem; padding-left: 12px;">Tidak ada jadwal mengajar.</p>`;
     } else {
-      html += `<table class="table-jadwal">
-        <thead>
-          <tr>
-            <th>Jam Ke</th>
-            <th>Kelas</th>
-            <th>Mata Pelajaran / Kegiatan</th>
-          </tr>
-        </thead>
-        <tbody>`;
+      html += `
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.95rem;">
+          <thead>
+            <tr style="background-color: #f8f9fa; text-align: left; border-bottom: 2px solid #dee2e6;">
+              <th style="padding: 8px; width: 80px;">Jam Ke</th>
+              <th style="padding: 8px; width: 120px;">Kelas</th>
+              <th style="padding: 8px;">Mata Pelajaran / Kelompok</th>
+            </tr>
+          </thead>
+          <tbody>`;
       
       list.forEach(j => {
-        const isTeam = userTeamIds.includes(String(j.id_g).trim());
-        const tagTim = isTeam ? ` <span class="badge-tim">(Tim T2Q/BPI)</span>` : "";
-        html += `<tr>
-          <td>${j.jam_ke}</td>
-          <td>${getKelasName(j.id_ke)}</td>
-          <td>${getMapelName(j.id_ma)}${tagTim}</td>
-        </tr>`;
+        const idG = String(j.id_g || j.id_guru || "").trim().toLowerCase();
+        const isTeam = userTeamIds.includes(idG);
+        const tagTim = isTeam ? ` <span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">(Tim Pengajar)</span>` : "";
+        
+        html += `
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 8px; font-weight: bold;">${j.jam_ke}</td>
+            <td style="padding: 8px;">${getKelasName(j.id_ke || j.id_kelas)}</td>
+            <td style="padding: 8px;">${getMapelName(j.id_ma || j.id_mapel)}${tagTim}</td>
+          </tr>`;
       });
       
       html += `</tbody></table>`;
