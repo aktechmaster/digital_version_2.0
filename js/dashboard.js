@@ -254,3 +254,99 @@ function renderMenuGrid() {
     menuGrid.appendChild(card);
   });
 }
+
+// Membuka Modal & Memuat Jadwal Guru Aktif
+async function openJadwalModal() {
+  const modal = document.getElementById("modalJadwal");
+  const container = document.getElementById("jadwalContentContainer");
+  
+  if (!modal || !container) return;
+  
+  modal.classList.add("active");
+  container.innerHTML = "<p class='text-center'>Memuat jadwal pelajaran...</p>";
+
+  const session = Auth.getSession();
+  if (!session || !session.id_guru) {
+    container.innerHTML = "<p class='text-center text-danger'>Data ID Guru tidak ditemukan dalam sesi login.</p>";
+    return;
+  }
+
+  const response = await API.readAllMaster();
+  if (response.status !== "success") {
+    container.innerHTML = "<p class='text-center text-danger'>Gagal mengambil data jadwal dari server.</p>";
+    return;
+  }
+
+  const { Jadwal = [], Tim_Pengajar = [], Mapel = [], Kelas = [] } = response.data;
+  const currentIdGuru = String(session.id_guru).trim();
+
+  // 1. Cari daftar ID Tim yang diikuti guru ini
+  const userTeamIds = Tim_Pengajar
+    .filter(tp => String(tp.id_guru).trim() === currentIdGuru)
+    .map(tp => String(tp.id_tim).trim());
+
+  // 2. Filter jadwal berdasarkan ID Guru langsung ATAU ID Tim
+  const userSchedules = Jadwal.filter(j => {
+    const idG = String(j.id_g).trim();
+    return idG === currentIdGuru || userTeamIds.includes(idG);
+  });
+
+  if (userSchedules.length === 0) {
+    container.innerHTML = "<p class='text-center'>Belum ada jadwal mengajar yang terdaftar untuk Anda.</p>";
+    return;
+  }
+
+  // Helper pencarian nama Mapel dan Kelas
+  const getMapelName = (idMapel) => Mapel.find(m => String(m.id_mapel).trim() === String(idMapel).trim())?.nama_mapel || idMapel;
+  const getKelasName = (idKelas) => Kelas.find(k => String(k.id_kelas).trim() === String(idKelas).trim())?.nama_kelas || idKelas;
+
+  // 3. Kelompokkan berdasarkan Hari
+  const daysOrder = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+  const groupedByDay = {};
+  daysOrder.forEach(day => groupedByDay[day] = []);
+
+  userSchedules.forEach(item => {
+    const hari = String(item.hari).trim();
+    if (groupedByDay[hari]) {
+      groupedByDay[hari].push(item);
+    }
+  });
+
+  // 4. Render ke HTML
+  let html = "";
+  daysOrder.forEach(hari => {
+    const list = groupedByDay[hari].sort((a, b) => Number(a.jam_ke) - Number(b.jam_ke));
+    
+    html += `<div class="jadwal-day-section mb-3">
+      <h4 class="day-title">${hari}</h4>`;
+    
+    if (list.length === 0) {
+      html += `<p class="text-muted small">Tidak ada jadwal mengajar.</p>`;
+    } else {
+      html += `<table class="table-jadwal">
+        <thead>
+          <tr>
+            <th>Jam Ke</th>
+            <th>Kelas</th>
+            <th>Mata Pelajaran / Kegiatan</th>
+          </tr>
+        </thead>
+        <tbody>`;
+      
+      list.forEach(j => {
+        const isTeam = userTeamIds.includes(String(j.id_g).trim());
+        const tagTim = isTeam ? ` <span class="badge-tim">(Tim T2Q/BPI)</span>` : "";
+        html += `<tr>
+          <td>${j.jam_ke}</td>
+          <td>${getKelasName(j.id_ke)}</td>
+          <td>${getMapelName(j.id_ma)}${tagTim}</td>
+        </tr>`;
+      });
+      
+      html += `</tbody></table>`;
+    }
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
