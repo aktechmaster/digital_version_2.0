@@ -221,13 +221,13 @@ function setupDropdownMenu() {
   });
 }
 
+// 1. UPDATE FUNGSI RENDER MENU GRID
 function renderMenuGrid() {
   const menuGrid = document.getElementById("menuGrid");
   if (!menuGrid) return;
   menuGrid.innerHTML = "";
 
   MENU_CATALOG.forEach(item => {
-    // FILTRASI OTORISASI PERMISSION USER
     if (!Auth.hasPermission(item.permission)) return;
 
     const card = document.createElement("a");
@@ -241,7 +241,11 @@ function renderMenuGrid() {
       card.href = "#";
       card.addEventListener("click", (e) => {
         e.preventDefault();
-        alert(`Membuka modal: ${item.title}`);
+        if (item.id === "jadwal_mengajar") {
+          openJadwalModal(); // Panggil fungsi muat data jadwal
+        } else {
+          alert(`Membuka modal: ${item.title}`);
+        }
       });
     }
 
@@ -252,6 +256,24 @@ function renderMenuGrid() {
     `;
 
     menuGrid.appendChild(card);
+  });
+
+  setupModalJadwalEvents();
+}
+
+// 2. SETUP EVENT LISTENER TUTUP MODAL JADWAL
+function setupModalJadwalEvents() {
+  const modalJadwal = document.getElementById("modalJadwal");
+  const btnCloseJadwalModal = document.getElementById("btnCloseJadwalModal");
+  const btnOkJadwalModal = document.getElementById("btnOkJadwalModal");
+
+  const closeJadwalModal = () => modalJadwal?.classList.remove("active");
+
+  btnCloseJadwalModal?.addEventListener("click", closeJadwalModal);
+  btnOkJadwalModal?.addEventListener("click", closeJadwalModal);
+
+  modalJadwal?.addEventListener("click", (e) => {
+    if (e.target === modalJadwal) closeJadwalModal();
   });
 }
 
