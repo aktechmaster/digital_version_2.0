@@ -1,9 +1,13 @@
 /**
  * js/api.js
  * Modul Terpusat Komunikasi API Backend Google Apps Script
+ * dengan Fitur Client-Side Caching
  */
 
 const API = {
+  // Variable penyimpan cache master data di memori browser
+  _masterCache: null,
+
   /**
    * Helper internal untuk eksekusi Fetch POST
    */
@@ -48,8 +52,39 @@ const API = {
   },
 
   // ---------------------------------------------------------------------------
-  // METHOD API SPESIFIK
+  // METHOD API SPESIFIK & CACHE MANAGEMENT
   // ---------------------------------------------------------------------------
+
+  /**
+   * Membaca Seluruh Master Data (Guru, Siswa, Kelas, Mapel, Jadwal, Tim_Pengajar)
+   * @param {boolean} forceRefresh - Set true jika ingin memaksa ambil data baru dari server
+   */
+  async readAllMaster(forceRefresh = false) {
+    // 1. Jika data sudah ada di cache & tidak dipaksa refresh, gunakan data cache (Instant)
+    if (this._masterCache && !forceRefresh) {
+      console.log("[API Cache]: Menggunakan master data dari memori browser.");
+      return this._masterCache;
+    }
+
+    // 2. Jika cache kosong / forceRefresh = true, ambil data baru dari Google Apps Script
+    console.log("[API Network]: Meminta master data dari server Apps Script...");
+    const result = await this._get("readAllMaster");
+
+    // 3. Simpan ke cache jika request berhasil
+    if (result && result.status === "success") {
+      this._masterCache = result;
+    }
+
+    return result;
+  },
+
+  /**
+   * Membersihkan cache lokal di frontend
+   */
+  clearCache() {
+    this._masterCache = null;
+    console.log("[API Cache]: Cache lokal berhasil dibersihkan.");
+  },
 
   // Login User V2.0
   async login(username, password) {
@@ -79,26 +114,25 @@ const API = {
     });
   },
 
-  // Membaca Seluruh Master Data (Guru, Siswa, Kelas, Mapel, Jadwal)
-  async readAllMaster() {
-    return await this._get("readAllMaster");
-  },
-
-  // Generic Create
+  // Generic Create (Otomatis reset cache setelah tambah data)
   async createData(sheetName, dataPayload) {
-    return await this._post({
+    const res = await this._post({
       action: "create",
       sheet: sheetName,
       payload: dataPayload
     });
+    if (res && res.status === "success") this.clearCache();
+    return res;
   },
 
-  // Generic Update
+  // Generic Update (Otomatis reset cache setelah ubah data)
   async updateData(sheetName, dataPayload) {
-    return await this._post({
+    const res = await this._post({
       action: "update",
       sheet: sheetName,
       payload: dataPayload
     });
+    if (res && res.status === "success") this.clearCache();
+    return res;
   }
 };
